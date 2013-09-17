@@ -1,0 +1,131 @@
+extends layout
+
+block content
+  select#project_id
+    for project in projects
+      option(value= project.id)= project.name
+
+  table#iterations
+    thead
+    tbody
+
+  script.
+    project = document.getElementById("project_id");
+    project.addEventListener("change", drawStories);
+
+    drawStories();
+    
+    function drawStories() {
+      getMembers(function() {
+        getStories();
+      });
+    }
+
+    function findOwner(owner_id) {
+      var person = _.find(Window.memberships, function(membership) {
+        return membership["person"]["id"] == owner_id;
+      });
+      return person && person["person"];
+    }
+
+    function createStory(story) {
+      var response = "";
+
+      if (story.story_type != "release") {
+        response += '<li class="story ' + story.story_type + '" data-url="' + story.url + '">'
+        response += '<h5 class="complexity">';
+        response += (story.feature()) ? story.estimate : story.story_type.charAt(0).toUpperCase();
+        response += '</h5>';
+        response += '<p class="description">' + story.name + '</span>';
+
+        var person = findOwner(story.owned_by_id);
+        if (person) {
+          response += '<p class="user">' + person["name"] + '</p>';
+        }
+
+        response += '</li>';
+      }
+
+      return response;
+    }
+
+    function getMembers(callback) {
+      $.ajax({
+        type: 'GET',
+        url: '/projects/' + project.value + '/memberships',
+        dataType: 'json',
+        success: function(data) {
+          Window.memberships = data;
+          callback();
+        }
+      });
+    }
+
+    function getStories() {
+      var memberships = this;
+
+      $.ajax({
+        type: 'GET',
+        url: '/projects/' + project.value + '/iterations?offset=-7&limit=7&scope=done',
+        dataType: 'json',
+        success: function(data) {
+          var i, list, header, body;
+
+          list = [];
+
+          for (i = 0; i < data.length; i++) {
+            list.push(new Tracker.Iteration(data[i]));
+          }
+
+          header = "<tr>";
+          body = "<tr>";
+
+          _.each(list, function(iteration) {
+            header += '<th>' + moment(iteration.finish).format('MM/DD/YYYY') + '</th>';
+
+            body += '<td class="header">' + iteration.points() + '</td>';
+          });
+
+          header += "</th>";
+          body += "</tr>";
+
+          body += "<tr>";
+
+          _.each(list, function(iteration) {
+            var stories, story;
+            body += "<td>";
+            body += '<ol class="stickies">';
+
+            stories = _.sortBy(iteration.stories, function(story) {
+              var sorter;
+
+              if (story.feature()) {
+                sorter = 1;
+              } else if (story.chore()) {
+                sorter = 2;
+              } else if (story.bug()) {
+                sorter = 3;
+              }
+
+              return sorter;
+            });
+
+            _.each(stories, function(story) {
+              body += createStory(story);
+            });
+            body += "</ol>";
+            body += "</td>";
+          });
+
+          body += "</tr>";
+
+          $("#iterations thead").html(header);
+          $("#iterations tbody").html(body);
+
+          $('#iterations li p').click(function() {
+            window.open(this.parentNode.dataset["url"], "_blank");
+          });
+        }
+      });
+    }
+    
