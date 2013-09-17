@@ -1,5 +1,4 @@
 request = require "request"
-repl    = require "repl"
 
 class Tracker
   URL = "https://www.pivotaltracker.com/services/v5"
