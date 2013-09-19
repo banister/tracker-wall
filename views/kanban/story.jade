@@ -1,0 +1,6 @@
+li.story.zoomTarget(class= story.story_type, data-closeclick="true")
+  h5.complexity
+    = story.story_type == "feature" ? story.estimate : story.story_type.charAt(0).toUpperCase()
+  p.description= story.name
+  p.user.legend(class= story.personColor())
+  p.user(data-owner= story.owned_by_id)= story.personName(memberships)

@@ -1,0 +1,13 @@
+extends ../layout
+
+block content
+  header
+    p= project.name
+
+  section#stories
+    table#kanban
+      thead
+      tbody
+        include active
+        include blocked
+

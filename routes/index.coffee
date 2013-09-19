@@ -4,8 +4,34 @@ Story      = require "./../lib/story"
 Membership = require "./../lib/membership"
 Iteration  = require "./../lib/iteration"
 
+token = "978f492d5d2a080ced6e8fbb801700fc"
+
 exports.tokenIndex = (req, res) ->
   res.render 'token/index'
+
+exports.kanbanIndex = (req, res) ->
+  req.session.token = token
+
+  tracker = new Tracker req.session.token
+  tracker.project req.params["projectId"], {},
+    failure: (error) ->
+      res.json JSON.parse error
+    success: (project) ->
+      tracker.iterations project.id, {scope: 'current_backlog'},
+        failure: (error) ->
+          res.json JSON.parse error
+        success: (iterations) ->
+          tracker.memberships req.params["projectId"], req.query,
+            failure: (error) ->
+              res.json JSON.parse error
+            success: (memberships) ->
+              res.render 'kanban/index', {
+                title: project,
+                project: project,
+                titles: ['Current', 'Development', 'Test', 'Complete'],
+                iterations: iterations,
+                memberships: memberships
+              }
 
 exports.projectIndex = (req, res) ->
   req.session.token = req.body["token"]
@@ -13,7 +39,7 @@ exports.projectIndex = (req, res) ->
   tracker = new Tracker req.session.token
   tracker.projects
     failure: (error) ->
-      res.json JSON.parse jsonString
+      res.json JSON.parse error
     success: (jsonString) ->
       list = for options in JSON.parse jsonString
         new Project options
@@ -24,15 +50,12 @@ exports.projectIndex = (req, res) ->
       }
 
 exports.projectShow = (req, res) ->
-  tracker = new Tracker req.session.token
+  tracker = new Tracker token
   tracker.project req.params["projectId"], req.query,
     failure: (error) ->
-      res.json JSON.parse jsonString
-    success: (jsonString) ->
-      list = for options in JSON.parse jsonString
-        options
-
-      res.json list
+      res.json JSON.parse error
+    success: (options) ->
+      res.json new Project JSON.parse options
 
 exports.membershipsIndex = (req, res) ->
   tracker = new Tracker req.session.token
@@ -55,11 +78,10 @@ exports.storiesIndex = (req, res) ->
       res.json list
 
 exports.iterationsIndex = (req, res) ->
-  tracker = new Tracker req.session.token
+  tracker = new Tracker token #req.session.token
   tracker.iterations req.params["projectId"], req.query,
     failure: (jsonString) ->
       res.json JSON.parse jsonString
-    success: (jsonString) ->
-      list = for options in JSON.parse jsonString
-        new Iteration options
-      res.json list
+    success: (iterations) ->
+      res.json iterations
+

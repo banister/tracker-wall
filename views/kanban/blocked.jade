@@ -1,0 +1,16 @@
+tr
+  td.label(colspan=4) Blocked
+
+tr
+  td.current
+  td.blocked-development
+    ol.stickies
+      for iteration in iterations
+        for story in iteration.blockedDevelopmentStories()
+          include story
+  td.test
+    ol.stickies
+      for iteration in iterations
+        for story in iteration.blockedDeliveredStories()
+          include story
+  td.complete

@@ -1,6 +1,6 @@
-class Project
+class Label
   constructor: (options) ->
     for name, value of options
       @[name] = value
 
-module.exports = Project
+module.exports = Label

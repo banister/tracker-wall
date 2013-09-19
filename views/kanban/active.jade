@@ -1,0 +1,28 @@
+tr
+  td.label Current
+  td.label Development
+  td.label Test
+  td.label Complete
+
+tr
+  td.current
+    ol.stickies
+      for iteration in iterations
+        for story in iteration.notStartedStories()
+          include story
+  td.development
+    ol.stickies
+      for iteration in iterations
+        for story in iteration.developmentStories()
+          include story
+  td.test
+    ol.stickies
+      for iteration in iterations
+        for story in iteration.deliveredStories()
+          include story
+  td.complete
+    ol.stickies
+      for iteration in iterations
+        for story in iteration.completedStories()
+          include story
+

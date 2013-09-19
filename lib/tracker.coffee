@@ -1,4 +1,7 @@
 request = require "request"
+Project = require "./project"
+Iteration = require "./iteration"
+Membership = require "./membership"
 
 class Tracker
   URL = "https://www.pivotaltracker.com/services/v5"
@@ -19,10 +22,9 @@ class Tracker
         callbacks.failure response.body
 
   project: (projectId, params, callbacks) =>
-    console.log @options("/projects/#{projectId}")
     request @options("/projects/#{projectId}"), (error, response, body) ->
       if !error && response.statusCode == 200 && callbacks.success
-        callbacks.success body
+        callbacks.success new Project JSON.parse body
       else if callbacks.failure
         callbacks.failure response.body
 
@@ -31,9 +33,10 @@ class Tracker
 
     request @options(requestUrl), (error, response, body) ->
       if !error && response.statusCode == 200 && callbacks.success
-        callbacks.success body
+        callbacks.success new Membership JSON.parse body
       else if callbacks.failure
         callbacks.failure response.body
+
   iterations: (projectId, params, callbacks) =>
     requestUrl = "/projects/#{projectId}/iterations"
 
@@ -46,7 +49,9 @@ class Tracker
 
     request @options(requestUrl), (error, response, body) ->
       if !error && response.statusCode == 200 && callbacks.success
-        callbacks.success body
+        iterations = for options in JSON.parse body
+          new Iteration options
+        callbacks.success iterations
       else if callbacks.failure
         callbacks.failure response.body
 
