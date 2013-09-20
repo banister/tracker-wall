@@ -30,7 +30,7 @@ class Iteration
     story for story in @stories when story.delivered() and story.blocked()
 
   deliveredStories: () ->
-    story for story in @stories when story.delivered()
+    story for story in @stories when story.delivered() and !story.blocked()
 
   completedStories: () ->
     story for story in @stories when story.accepted()

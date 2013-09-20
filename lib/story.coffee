@@ -41,7 +41,8 @@ class Story
     @current_state is ACCEPTED
 
   blocked: ->
-    label is null for label in @labels when label.name is BLOCKED
+    labels = label for label in @labels when label.name is BLOCKED
+    !!labels
 
   ownedBy: (membership) ->
     membership.person.id == @owned_by_id

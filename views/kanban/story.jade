@@ -1,4 +1,4 @@
-li.story.zoomTarget(class= story.story_type, data-closeclick="true")
+li.story.zoomTarget(class= story.story_type, data-targetsize="0.45", data-closeclick="true")
   h5.complexity
     = story.story_type == "feature" ? story.estimate : story.story_type.charAt(0).toUpperCase()
   p.description= story.name
