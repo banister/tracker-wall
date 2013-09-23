@@ -62,10 +62,8 @@ exports.membershipsIndex = (req, res) ->
   tracker.memberships req.params["projectId"], req.query,
     failure: (jsonString) ->
       res.json JSON.parse jsonString
-    success: (jsonString) ->
-      list = for options in JSON.parse jsonString
-        new Membership options
-      res.json list
+    success: (memberships) ->
+      res.json memberships
 
 exports.storiesIndex = (req, res) ->
   tracker = new Tracker req.session.token
