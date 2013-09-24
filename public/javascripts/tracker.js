@@ -33,6 +33,14 @@ Tracker.Story.prototype.feature = function() {
   return this.story_type === this.constructor.FEATURE;
 };
 
+Tracker.Story.prototype.type = function() {
+  var blockedLabel = _.find(this.labels, function(label) {
+    return label.name === "old-on-call";
+  });
+
+  return blockedLabel ? "on-call" : this.story_type;
+};
+
 Tracker.Iteration = function(options) {
   function constructor(options) {
     var name, storyOptions, value, _i, _len;

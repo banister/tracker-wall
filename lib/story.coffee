@@ -28,6 +28,9 @@ class Story
   release: ->
     @story_type is RELEASE
 
+  theType: ->
+    @blocked? ? BLOCKED : @story_type
+
   notStarted: ->
     @current_state is UNSTARTED
 
