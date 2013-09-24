@@ -11,6 +11,7 @@ class Story
   ACCEPTED = "accepted"
 
   BLOCKED = "blocked"
+  ONCALL = "old-on-call"
 
   constructor: (options) ->
     for name, value of options
@@ -28,8 +29,11 @@ class Story
   release: ->
     @story_type is RELEASE
 
-  theType: ->
-    @blocked? ? BLOCKED : @story_type
+  type: ->
+    if @onCall()
+      "on-call"
+    else
+      @story_type
 
   notStarted: ->
     @current_state is UNSTARTED
@@ -45,6 +49,10 @@ class Story
 
   blocked: ->
     labels = label for label in @labels when label.name is BLOCKED
+    !!labels
+
+  onCall: ->
+    labels = label for label in @labels when label.name is ONCALL
     !!labels
 
   ownedBy: (membership) ->
