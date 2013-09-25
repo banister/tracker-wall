@@ -1,9 +1,10 @@
 extends layout
 
 block content
-  select#project_id
-    for project in projects
-      option(value= project.id)= project.name
+  header
+    select#project_id
+      for project in projects
+        option(value= project.id)= project.name
 
   table#iterations
     thead
