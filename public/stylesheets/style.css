@@ -16,6 +16,21 @@ header p {
   font-weight: bold;
   margin: 0;
 }
+form#tokenizer {
+  margin-top: 200px;
+  text-align: center;
+  width: 500px;
+}
+form#tokenizer input[type=text] {
+  font-size: 24px;
+  padding: 8px;
+  text-align: center;
+  width: 480px;
+}
+form#tokenizer input[type=submit] {
+  font-size: 40px;
+  margin-top: 10px;
+}
 section {
   margin: 20px 0 0 0;
 }
