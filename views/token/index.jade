@@ -2,7 +2,7 @@ extends ../layouts/layout
 
 block content
   header
-    form(id="tokenizer", action="/", method="post")
+    form(id="tokenizer", action="/projects", method="get")
       input(name="token", type="text")
       .action
         input(type="submit")

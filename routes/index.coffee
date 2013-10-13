@@ -37,7 +37,7 @@ exports.kanbanIndex = (req, res) ->
               }
 
 exports.projectIndex = (req, res) ->
-  req.session.token = req.body["token"]
+  req.session.token = req.cookies['pivotal-api-token']
 
   tracker = new Tracker req.session.token
   tracker.projects
@@ -47,7 +47,7 @@ exports.projectIndex = (req, res) ->
       list = for options in JSON.parse jsonString
         new Project options
 
-      res.render 'index', {
+      res.render 'past', {
         title: 'Projects',
         projects: list
       }
