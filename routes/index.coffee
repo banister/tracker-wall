@@ -4,8 +4,6 @@ Story      = require "./../lib/story"
 Membership = require "./../lib/membership"
 Iteration  = require "./../lib/iteration"
 
-token = "978f492d5d2a080ced6e8fbb801700fc"
-
 exports.backboneIndex = (req, res) ->
   res.render 'backbone/index'
 
@@ -13,9 +11,7 @@ exports.tokenIndex = (req, res) ->
   res.render 'token/index'
 
 exports.kanbanIndex = (req, res) ->
-  req.session.token = token
-
-  tracker = new Tracker req.session.token
+  tracker = new Tracker req.cookies['pivotal-api-token']
   tracker.project req.params["projectId"], {},
     failure: (error) ->
       res.json JSON.parse error
@@ -37,9 +33,7 @@ exports.kanbanIndex = (req, res) ->
               }
 
 exports.projectIndex = (req, res) ->
-  req.session.token = req.cookies['pivotal-api-token']
-
-  tracker = new Tracker req.session.token
+  tracker = new Tracker req.cookies['pivotal-api-token']
   tracker.projects
     failure: (error) ->
       res.json JSON.parse error
@@ -53,7 +47,7 @@ exports.projectIndex = (req, res) ->
       }
 
 exports.projectShow = (req, res) ->
-  tracker = new Tracker token
+  tracker = new Tracker req.cookies['pivotal-api-token']
   tracker.project req.params["projectId"], req.query,
     failure: (error) ->
       res.json JSON.parse error
@@ -61,7 +55,7 @@ exports.projectShow = (req, res) ->
       res.json new Project JSON.parse options
 
 exports.membershipsIndex = (req, res) ->
-  tracker = new Tracker req.session.token
+  tracker = new Tracker req.cookies['pivotal-api-token']
   tracker.memberships req.params["projectId"], req.query,
     failure: (jsonString) ->
       res.json JSON.parse jsonString
@@ -69,7 +63,7 @@ exports.membershipsIndex = (req, res) ->
       res.json memberships
 
 exports.storiesIndex = (req, res) ->
-  tracker = new Tracker req.session.token
+  tracker = new Tracker req.cookies['pivotal-api-token']
   tracker.stories req.params["projectId"], req.query,
     failure: (jsonString) ->
       res.json JSON.parse jsonString
@@ -79,7 +73,7 @@ exports.storiesIndex = (req, res) ->
       res.json list
 
 exports.iterationsIndex = (req, res) ->
-  tracker = new Tracker token #req.session.token
+  tracker = new Tracker req.cookies['pivotal-api-token']
   tracker.iterations req.params["projectId"], req.query,
     failure: (jsonString) ->
       res.json JSON.parse jsonString
