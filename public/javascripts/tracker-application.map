@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "tracker-application.js",
+  "sourceRoot": "../..",
+  "sources": [
+    "public/coffeescripts/tracker-application.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;CAAA,KAAA,kBAAA;KAAA;oSAAA;;CAAA,CAAM;CAEJ;;;;;CAAA;;CAAA,CAAA,CAAI,GAAA;;CAAJ,EAEY,MAAA,CAAZ;;CAFA,EAIQ,GAAR,GAAQ;CACN,EAAQ,CAAP,EAAD,MAAQ;CACP,GAAA,SAAD;CANF,IAIQ;;CAJR;;CAF+B,OAAQ;;CAAzC,CAYA,GAAkB,aAAA;CAZlB"
+}

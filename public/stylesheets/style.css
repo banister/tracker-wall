@@ -1,48 +1,86 @@
 body {
-  padding: 20px 0;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font: 12px "Lucida Grande", Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 a {
-  color: #00b7ff;
+  color: #2455c3;
+  text-decoration: none;
+}
+nav#header-nav {
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+  line-height: 18px;
+  opacity: 0.95;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+nav#header-nav ul#projects {
+  line-height: 41px;
+  margin: 0;
+  overflow-x: hidden;
+}
+nav#header-nav ul#projects li {
+  display: inline-block;
+  margin-right: 20px;
+}
+nav#header-nav ul#projects li a {
+  color: #222;
+  width: 24px;
+}
+nav#header-nav .loading {
+  text-align: center;
 }
 header {
   margin: 0 auto;
   text-align: center;
-  width: 400px;
+}
+header h1 {
+  font-family: Helvetica;
+  font-size: 160px;
+  font-weight: bold;
+  height: 175px;
+  margin: -35px auto 0 auto;
+  overflow: hidden;
+  text-transform: uppercase;
 }
 header p {
   font-family: 'Rokkitt', Helvetica;
   font-size: 48px;
   font-weight: bold;
   margin: 0;
+ul
+  opacity: 1;
 }
-form#tokenizer {
-  margin-top: 200px;
+form#token {
+  margin: 120px auto 0 auto;
   text-align: center;
   width: 500px;
 }
-form#tokenizer input[type=text] {
+form#token input[type=text] {
   font-size: 24px;
   padding: 8px;
   text-align: center;
   width: 480px;
 }
-form#tokenizer input[type=submit] {
+form#token input[type=submit] {
   font-size: 40px;
   margin-top: 10px;
 }
-section {
-  margin: 20px 0 0 0;
+section#stories {
+  margin: 0;
 }
-section table {
+section#stories table.kanban {
   border-collapse: collapse;
   width: 100%;
 }
-section table tr th {
-  border-bottom: 10px solid #2697e3;
-  font-size: 16px;
+section#stories table.kanban tr th {
+  font-family: 'Rokkitt', Helvetica;
+  font-size: 40px;
 }
-section table tbody tr td {
+section#stories table.kanban tbody tr td {
   border-right: 10px solid #2697e3;
   border-bottom: 10px solid #2697e3;
   border-left: 10px solid #2697e3;
@@ -50,7 +88,7 @@ section table tbody tr td {
   vertical-align: top;
   width: 25%;
 }
-section table tbody tr td.label {
+section#stories table.kanban tbody tr td.label {
   background: #2697e3;
   color: #fff;
   font-size: 20px;
@@ -59,7 +97,7 @@ section table tbody tr td.label {
   text-align: center;
   text-transform: uppercase;
 }
-section table tbody tr:first-child td {
+section#stories table.kanban tbody tr:first-child td {
   border-top: 10px solid #2697e3;
 }
 select {

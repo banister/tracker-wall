@@ -6,6 +6,9 @@ Iteration  = require "./../lib/iteration"
 
 token = "978f492d5d2a080ced6e8fbb801700fc"
 
+exports.backboneIndex = (req, res) ->
+  res.render 'backbone/index'
+
 exports.tokenIndex = (req, res) ->
   res.render 'token/index'
 

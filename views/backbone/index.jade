@@ -1,0 +1,17 @@
+extends ../layouts/backbone
+
+block content
+  header
+    h1 Tracker Wall
+
+
+  nav#header-nav
+    ul#projects(style="display: none")
+
+  form(id="token", style="display: none", onsubmit="return false")
+    input(class="api-token", name="api-token", type="text")
+    .action
+      input(id="token-submit" type="submit")
+
+  section#stories
+
