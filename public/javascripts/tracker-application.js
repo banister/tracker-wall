@@ -118,8 +118,12 @@
 
     ONCALL = "old-on-call";
 
+    Story.prototype.feature = function() {
+      return this.get('story_type') === FEATURE;
+    };
+
     Story.prototype.mark = function() {
-      if (this.get('story_type') === FEATURE) {
+      if (this.feature != null) {
         return this.get('estimate');
       } else {
         return this.get('story_type').charAt(0).toUpperCase();
@@ -325,7 +329,9 @@
     };
 
     KanbanView.prototype.addStory = function(story) {
-      this.totals[story.status()] += 1;
+      if (typeof story.feature === "function" ? story.feature() : void 0) {
+        this.totals[story.status()] += +story.get('estimate');
+      }
       if (this.$el.find("#story-" + (story.get('id'))).length === 0) {
         return this.$el.find("." + (story.status()) + " ol.stickies").append(new StoryView({
           id: "story-" + (story.get('id')),

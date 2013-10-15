@@ -40,8 +40,11 @@ class Story extends Backbone.Model
   BLOCKED = "blocked"
   ONCALL = "old-on-call"
 
+  feature: () ->
+    @get('story_type') is FEATURE
+
   mark: () ->
-    if @get('story_type') is FEATURE
+    if @feature?
       @get('estimate')
     else
       @get('story_type').charAt(0).toUpperCase()
@@ -149,7 +152,8 @@ class KanbanView extends Backbone.View
       complete: 0
 
   addStory: (story) ->
-    @totals[story.status()] += 1
+    if story.feature?()
+      @totals[story.status()] += +story.get('estimate')
 
     if @$el.find("#story-#{story.get('id')}").length is 0
       @$el.find(".#{story.status()} ol.stickies").append new StoryView({
