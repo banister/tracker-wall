@@ -142,8 +142,15 @@ class KanbanView extends Backbone.View
 
   initialize: (project) ->
     @project = project
+    @totals =
+      current: 0
+      development: 0
+      test: 0
+      complete: 0
 
   addStory: (story) ->
+    @totals[story.status()] += 1
+
     if @$el.find("#story-#{story.get('id')}").length is 0
       @$el.find(".#{story.status()} ol.stickies").append new StoryView({
         id: "story-#{story.get('id')}", cid: story.cid,
@@ -154,6 +161,7 @@ class KanbanView extends Backbone.View
   addIterationToWall: (iteration) =>
     _.each iteration.get('stories'), (json) =>
       @addStory new Story(json)
+    @renderTotals()
 
   render: () ->
     @renderBase().renderHeaders().renderStoryArea()
@@ -168,7 +176,7 @@ class KanbanView extends Backbone.View
     @
 
   renderHeaders: () ->
-    template = _.template "<tr>#{_.map COLUMNS, (column) -> "<td class='label'>#{column}</td>"}</tr>"
+    template = _.template "<tr>#{_.map COLUMNS, (column) -> "<td class='#{column.toLowerCase()} label'>#{column}</td>"}</tr>"
     @$el.find('table tbody').append template()
     @
 
@@ -177,6 +185,10 @@ class KanbanView extends Backbone.View
     @$el.find('table tbody').append template()
     @
 
+  renderTotals: () =>
+    _.each COLUMNS, (column) =>
+      @$el.find(".label.#{column.toLowerCase()}").text "#{column} (#{@totals[column.toLowerCase()]})"
+    @
 
 
 class TrackerApplication extends Backbone.View

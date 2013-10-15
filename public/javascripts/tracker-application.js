@@ -302,6 +302,7 @@
     __extends(KanbanView, _super);
 
     function KanbanView() {
+      this.renderTotals = __bind(this.renderTotals, this);
       this.addIterationToWall = __bind(this.addIterationToWall, this);
       _ref9 = KanbanView.__super__.constructor.apply(this, arguments);
       return _ref9;
@@ -314,10 +315,17 @@
     KanbanView.prototype.tagName = 'section';
 
     KanbanView.prototype.initialize = function(project) {
-      return this.project = project;
+      this.project = project;
+      return this.totals = {
+        current: 0,
+        development: 0,
+        test: 0,
+        complete: 0
+      };
     };
 
     KanbanView.prototype.addStory = function(story) {
+      this.totals[story.status()] += 1;
       if (this.$el.find("#story-" + (story.get('id'))).length === 0) {
         return this.$el.find("." + (story.status()) + " ol.stickies").append(new StoryView({
           id: "story-" + (story.get('id')),
@@ -332,9 +340,10 @@
 
     KanbanView.prototype.addIterationToWall = function(iteration) {
       var _this = this;
-      return _.each(iteration.get('stories'), function(json) {
+      _.each(iteration.get('stories'), function(json) {
         return _this.addStory(new Story(json));
       });
+      return this.renderTotals();
     };
 
     KanbanView.prototype.render = function() {
@@ -356,7 +365,7 @@
     KanbanView.prototype.renderHeaders = function() {
       var template;
       template = _.template("<tr>" + (_.map(COLUMNS, function(column) {
-        return "<td class='label'>" + column + "</td>";
+        return "<td class='" + (column.toLowerCase()) + " label'>" + column + "</td>";
       })) + "</tr>");
       this.$el.find('table tbody').append(template());
       return this;
@@ -368,6 +377,14 @@
         return "<td class='" + (column.toLowerCase()) + "'><ol class='stickies'></ol></td>";
       })) + "</tr>");
       this.$el.find('table tbody').append(template());
+      return this;
+    };
+
+    KanbanView.prototype.renderTotals = function() {
+      var _this = this;
+      _.each(COLUMNS, function(column) {
+        return _this.$el.find(".label." + (column.toLowerCase())).text("" + column + " (" + _this.totals[column.toLowerCase()] + ")");
+      });
       return this;
     };
 
