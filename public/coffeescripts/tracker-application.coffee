@@ -1,4 +1,6 @@
 class Project extends Backbone.Model
+  urlRoot: "https://www.pivotaltracker.com/services/v5/projects"
+
   initialize: (options) ->
     @constructor.__super__.initialize.apply @, [options]
     @iterationsCollection = new IterationsCollection @
@@ -6,9 +8,11 @@ class Project extends Backbone.Model
   fetchIterations: (options) ->
     @iterationsCollection.fetch {data: {token: TrackerApplication.token(), scope: options['scope']}}
 
+
 class ProjectsCollection extends Backbone.Collection
   model: Project
   url: "https://www.pivotaltracker.com/services/v5/projects"
+
 
 class Iteration extends Backbone.Model
   currentStories: () ->
@@ -112,11 +116,11 @@ class TokenView extends Backbone.View
 
 
 class StoryWall extends Backbone.View
-  tagName: 'ol'
+  tagName: 'div'
   className: 'stickies'
 
 class StoryView extends Backbone.View
-  tagName: 'li'
+  tagName: 'div'
   className: 'story'
 
   initialize: (story) ->
@@ -127,14 +131,14 @@ class StoryView extends Backbone.View
     @$el.addClass @story.type
     @$el.attr('cid', @story.cid)
     @$el.html template @story
-    @$el.click (event) =>
-      event.stopPropagation()
-      @$el.zoomTo {
-        closeclick: true,
-        debug: true,
-        root: $(document.body),
-        targetsize: 0.6
-      }
+#    @$el.click (event) =>
+#      event.stopPropagation()
+#      @$el.zoomTo {
+#        closeclick: true,
+#        debug: true,
+#        root: $(document.body),
+#        targetsize: 0.6
+#      }
     @
 
 class KanbanView extends Backbone.View
@@ -156,11 +160,20 @@ class KanbanView extends Backbone.View
       @totals[story.status()] += +story.get('estimate')
 
     if @$el.find("#story-#{story.get('id')}").length is 0
-      @$el.find(".#{story.status()} ol.stickies").append new StoryView({
+      storyView = new StoryView({
         id: "story-#{story.get('id')}", cid: story.cid,
         story_type: story.get('story_type'), name: story.get('name'),
         mark: story.mark(), type: story.type()
-      }).render().el
+      }).render()
+      #$(storyView.el).draggable({revert: 'invalid', stack: '.stickies div', snap: true, snapMode: 'inner'})
+      $(storyView.el).draggable({
+        connectToSortable: '.stickies',
+        stack: '.stickies div'
+      })
+      @$el.find(".#{story.status()} .stickies").append storyView.el
+
+  handleDroppedStory: (event, ui) ->
+    console.log event
 
   addIterationToWall: (iteration) =>
     _.each iteration.get('stories'), (json) =>
@@ -172,6 +185,15 @@ class KanbanView extends Backbone.View
 
     @project.iterationsCollection.on "add", @addIterationToWall
     @project.fetchIterations({scope: 'current_backlog'})
+
+    @$el.find('.stickies').sortable({
+      connectWith: '.stickies'
+    })
+#    @$el.find(".stickies").droppable({
+#      accept: '.stickies div',
+#      drop: @handleDroppedStory,
+#      tolerence: 'fit'
+#    })
     @
 
   renderBase: () ->
@@ -185,7 +207,7 @@ class KanbanView extends Backbone.View
     @
 
   renderStoryArea: () ->
-    template = _.template "<tr>#{_.map COLUMNS, (column) -> "<td class='#{column.toLowerCase()}'><ol class='stickies'></ol></td>"}</tr>"
+    template = _.template "<tr>#{_.map COLUMNS, (column) -> "<td class='#{column.toLowerCase()} wall'><div class='stickies'></div></td>"}</tr>"
     @$el.find('table tbody').append template()
     @
 
@@ -206,15 +228,25 @@ class TrackerApplication extends Backbone.View
 
     @projectsView = new ProjectsView
     @projectsView.on 'project-selected', (project) =>
-      if @$el.find("#project-#{project.get('id')}").length == 0
-        @$el.find('header h1').text project.get('name')
-        @$el.append new KanbanView(project).render().el
+      @updateSelectedProject project
+      @constructor.setCookie 'tracker-project-id', project.get('id')
 
   render: () ->
     if TrackerApplication.token()
       @projectsView.render()
+
+      if TrackerApplication.projectId()
+        project = new Project {id: TrackerApplication.projectId()}
+        project.on 'change', (model) =>
+          @updateSelectedProject model
+        project.fetch {data: {token: TrackerApplication.token()}}
     else
       @tokenView.render()
+
+  updateSelectedProject: (project) ->
+    if @$el.find("#project-#{project.get('id')}").length == 0
+      @$el.find('header h1').text project.get('name')
+      @$el.append new KanbanView(project).render().el
 
   @getCookie: (value) ->
     cookie = _.find document.cookie.split(';'), (cookieString) ->
@@ -222,6 +254,12 @@ class TrackerApplication extends Backbone.View
         true if key is value
     if cookie
       _.last cookie.split('=')
+
+  @setCookie: (name, value) ->
+    document.cookie = "#{name}=#{value}"
+
+  @projectId: () ->
+    @getCookie 'tracker-project-id'
 
   @token: () =>
     @getCookie 'pivotal-api-token'

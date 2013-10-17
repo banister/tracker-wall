@@ -74,6 +74,7 @@ section#stories {
 }
 section#stories table.kanban {
   border-collapse: collapse;
+  height: 100%;
   width: 100%;
 }
 section#stories table.kanban tr th {
@@ -121,12 +122,12 @@ table#iterations th,
 table#iterations td.header {
   text-align: center;
 }
-ol.stickies {
+.stickies {
   list-style-type: none;
   margin-top: 0;
   padding: 0;
 }
-ol.stickies li {
+.stickies div {
   -webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
   -moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
   box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
@@ -139,7 +140,7 @@ ol.stickies li {
   padding: 5px 0 0 0;
   z-index: 1;
 }
-ol.stickies li h5.complexity {
+.stickies div h5.complexity {
   float: right;
   font-size: 14px;
   height: 12px;
@@ -147,55 +148,55 @@ ol.stickies li h5.complexity {
   padding-bottom: 5px;
   text-align: right;
 }
-ol.stickies li p.description {
+.stickies div p.description {
   font-family: 'Rokkitt', Helvetica;
   height: 48px;
   margin: 2px 18px 0 10px;
   overflow: hidden;
 }
-ol.stickies li p.user {
+.stickies div p.user {
   font-size: 7px;
   font-weight: bold;
   padding-left: 10px;
 }
-ol.stickies li p.user.legend {
+.stickies div p.user.legend {
   float: right;
   height: 15px;
   margin-top: 5px;
   width: 5px;
 }
-ol.stickies li p.user.legend.phill {
+.stickies div p.user.legend.phill {
   background: #22e;
 }
-ol.stickies li p.user.legend.robert {
+.stickies div p.user.legend.robert {
   background: #f55;
 }
-ol.stickies li p.user.legend.gracie {
+.stickies div p.user.legend.gracie {
   background: #0c1;
 }
-ol.stickies li p.user.legend.joshua {
+.stickies div p.user.legend.joshua {
   background: #ff873b;
 }
-ol.stickies li p.user.legend.dustin {
+.stickies div p.user.legend.dustin {
   background: #7ba0ba;
 }
-ol.stickies li.feature {
+.stickies div.feature {
   background: #f5d15a;
 }
-ol.stickies li.chore {
+.stickies div.chore {
   background: #2d84b9;
 }
-ol.stickies li.bug {
+.stickies div.bug {
   background: #e53b39;
 }
-ol.stickies li.on-call {
+.stickies div.on-call {
   background: #a8c098;
 }
-ol.stickies li:hover {
+.stickies div:hover {
   cursor: pointer;
   opacity: 1;
 }
-section ol.stickies li {
+section .stickies div {
   height: 70px;
   margin: 5px;
   width: 90px;

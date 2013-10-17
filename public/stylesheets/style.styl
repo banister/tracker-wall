@@ -75,6 +75,7 @@ section#stories
 
   table.kanban
     border-collapse: collapse
+    height: 100%
     width: 100%
 
     tr
@@ -125,12 +126,12 @@ table#iterations
   th, td.header
     text-align: center
 
-ol.stickies
+.stickies
   list-style-type: none
   margin-top: 0
   padding: 0
 
-  li
+  div
     -webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75)
     -moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75)
     box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75)
@@ -180,24 +181,24 @@ ol.stickies
       background: #7ba0ba
       
       
-  li.feature
+  div.feature
     background: #f5d15a
 
-  li.chore
+  div.chore
     background: #2d84b9
 
-  li.bug
+  div.bug
     background: #e53b39
 
-  li.on-call
+  div.on-call
     background: #a8c098
 
-  li:hover
+  div:hover
     cursor: pointer
     opacity: 1
 
-section ol.stickies
-  li
+section .stickies
+  div
     height: 70px
     margin: 5px
     width: 90px

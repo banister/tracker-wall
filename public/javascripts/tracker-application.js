@@ -13,6 +13,8 @@
       return _ref;
     }
 
+    Project.prototype.urlRoot = "https://www.pivotaltracker.com/services/v5/projects";
+
     Project.prototype.initialize = function(options) {
       this.constructor.__super__.initialize.apply(this, [options]);
       return this.iterationsCollection = new IterationsCollection(this);
@@ -253,7 +255,7 @@
       return _ref7;
     }
 
-    StoryWall.prototype.tagName = 'ol';
+    StoryWall.prototype.tagName = 'div';
 
     StoryWall.prototype.className = 'stickies';
 
@@ -269,7 +271,7 @@
       return _ref8;
     }
 
-    StoryView.prototype.tagName = 'li';
+    StoryView.prototype.tagName = 'div';
 
     StoryView.prototype.className = 'story';
 
@@ -278,21 +280,11 @@
     };
 
     StoryView.prototype.render = function() {
-      var template,
-        _this = this;
+      var template;
       template = _.template("<h5 class='complexity <%= story_type %>'><%= mark %></h5><p class='description'><%= name %></p><p class='user legend'></p><p class='user'>" + "</p>");
       this.$el.addClass(this.story.type);
       this.$el.attr('cid', this.story.cid);
       this.$el.html(template(this.story));
-      this.$el.click(function(event) {
-        event.stopPropagation();
-        return _this.$el.zoomTo({
-          closeclick: true,
-          debug: true,
-          root: $(document.body),
-          targetsize: 0.6
-        });
-      });
       return this;
     };
 
@@ -329,19 +321,29 @@
     };
 
     KanbanView.prototype.addStory = function(story) {
+      var storyView;
       if (typeof story.feature === "function" ? story.feature() : void 0) {
         this.totals[story.status()] += +story.get('estimate');
       }
       if (this.$el.find("#story-" + (story.get('id'))).length === 0) {
-        return this.$el.find("." + (story.status()) + " ol.stickies").append(new StoryView({
+        storyView = new StoryView({
           id: "story-" + (story.get('id')),
           cid: story.cid,
           story_type: story.get('story_type'),
           name: story.get('name'),
           mark: story.mark(),
           type: story.type()
-        }).render().el);
+        }).render();
+        $(storyView.el).draggable({
+          connectToSortable: '.stickies',
+          stack: '.stickies div'
+        });
+        return this.$el.find("." + (story.status()) + " .stickies").append(storyView.el);
       }
+    };
+
+    KanbanView.prototype.handleDroppedStory = function(event, ui) {
+      return console.log(event);
     };
 
     KanbanView.prototype.addIterationToWall = function(iteration) {
@@ -357,6 +359,9 @@
       this.project.iterationsCollection.on("add", this.addIterationToWall);
       this.project.fetchIterations({
         scope: 'current_backlog'
+      });
+      this.$el.find('.stickies').sortable({
+        connectWith: '.stickies'
       });
       return this;
     };
@@ -380,7 +385,7 @@
     KanbanView.prototype.renderStoryArea = function() {
       var template;
       template = _.template("<tr>" + (_.map(COLUMNS, function(column) {
-        return "<td class='" + (column.toLowerCase()) + "'><ol class='stickies'></ol></td>";
+        return "<td class='" + (column.toLowerCase()) + " wall'><div class='stickies'></div></td>";
       })) + "</tr>");
       this.$el.find('table tbody').append(template());
       return this;
@@ -418,18 +423,38 @@
       });
       this.projectsView = new ProjectsView;
       return this.projectsView.on('project-selected', function(project) {
-        if (_this.$el.find("#project-" + (project.get('id'))).length === 0) {
-          _this.$el.find('header h1').text(project.get('name'));
-          return _this.$el.append(new KanbanView(project).render().el);
-        }
+        _this.updateSelectedProject(project);
+        return _this.constructor.setCookie('tracker-project-id', project.get('id'));
       });
     };
 
     TrackerApplication.prototype.render = function() {
+      var project,
+        _this = this;
       if (TrackerApplication.token()) {
-        return this.projectsView.render();
+        this.projectsView.render();
+        if (TrackerApplication.projectId()) {
+          project = new Project({
+            id: TrackerApplication.projectId()
+          });
+          project.on('change', function(model) {
+            return _this.updateSelectedProject(model);
+          });
+          return project.fetch({
+            data: {
+              token: TrackerApplication.token()
+            }
+          });
+        }
       } else {
         return this.tokenView.render();
+      }
+    };
+
+    TrackerApplication.prototype.updateSelectedProject = function(project) {
+      if (this.$el.find("#project-" + (project.get('id'))).length === 0) {
+        this.$el.find('header h1').text(project.get('name'));
+        return this.$el.append(new KanbanView(project).render().el);
       }
     };
 
@@ -445,6 +470,14 @@
       if (cookie) {
         return _.last(cookie.split('='));
       }
+    };
+
+    TrackerApplication.setCookie = function(name, value) {
+      return document.cookie = "" + name + "=" + value;
+    };
+
+    TrackerApplication.projectId = function() {
+      return this.getCookie('tracker-project-id');
     };
 
     TrackerApplication.token = function() {
