@@ -23,7 +23,7 @@ app.use express.static(path.join(__dirname, 'public'))
 if 'development' == app.get('env')
   app.use express.errorHandler()
 
-app.get '/',                         routes.backboneIndex
+app.get '/',                                 routes.backboneIndex
 app.get  '/past',                            routes.projectIndex
 #app.get  '/token',                           routes.tokenIndex
 #app.get  '/kanban/:projectId',               routes.kanbanIndex
