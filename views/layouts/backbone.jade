@@ -3,16 +3,27 @@ html
   head
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css' type='text/css')
+    link(rel='stylesheet', href='/stylesheets/audience.css' type='text/css')
     link(rel='stylesheet', href='http://fonts.googleapis.com/css?family=Rokkitt' type='text/css')
-
-    script(src='/components/jquery/jquery.min.js')
-    script(src='/components/underscore/underscore-min.js')
-    script(src='/components/backbone/backbone-min.js')
-    script(src='/components/zoomooz/jquery.zoomooz.min.js')
-    script(src='/components/jquery-ui/ui/minified/jquery-ui.min.js')
 
     //script(src='/javascripts/moment.min.js')
   body
     block content
 
+  script(src='/components/jquery/jquery.min.js')
+  script(src='/components/underscore/underscore-min.js')
+  script(src='/components/backbone/backbone-min.js')
+  script(src='/components/zoomooz/jquery.zoomooz.min.js')
+  script(src='/components/jquery-ui/ui/minified/jquery-ui.min.js')
+  script(src='/components/audience/javascripts/audience.js')
+  script(src='/javascripts/tracker_dom_mappings.js')
+
+  script(type="text/javascript").
+    var handler = function(message) {
+      console.log(message.toObject());
+    }
+    var spy = new Audience.Spy({handler: handler, domMappings: TrackerDOMMappings});
+    spy.listen();
+
   script(src='/javascripts/tracker-application.js')
+

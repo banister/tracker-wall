@@ -1,0 +1,28 @@
+{
+  "name": "audience",
+  "homepage": "https://github.com/chadwpry/audience",
+  "authors": [
+    "Chad W Pry <chad.pry@gmail.com>"
+  ],
+  "description": "Watching how people view your site",
+  "license": "MIT",
+  "main": "javascripts/audience.js",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {},
+  "_release": "9e67b4ab70",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "9e67b4ab70a64a6e12a0f25dee142ee05e01d9ce"
+  },
+  "_source": "git://github.com/chadwpry/audience.git",
+  "_target": "*",
+  "_originalSource": "audience"
+}

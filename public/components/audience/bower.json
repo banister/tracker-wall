@@ -1,0 +1,21 @@
+{
+  "name": "audience",
+  "version": "0.1.0",
+  "homepage": "https://github.com/chadwpry/audience",
+  "authors": [
+    "Chad W Pry <chad.pry@gmail.com>"
+  ],
+  "description": "Watching how people view your site",
+  "license": "MIT",
+  "main": "javascripts/audience.js",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+  }
+}
