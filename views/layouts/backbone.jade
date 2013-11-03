@@ -12,7 +12,7 @@ html
 
   script(src='/components/jquery/jquery.min.js')
   script(src='/components/underscore/underscore-min.js')
-  script(src='/components/backbone/backbone-min.js')
+  script(src='/components/backbone/backbone.js')
   script(src='/components/zoomooz/jquery.zoomooz.min.js')
   script(src='/components/jquery-ui/ui/minified/jquery-ui.min.js')
   script(src='/components/audience/javascripts/audience.js')
@@ -22,8 +22,8 @@ html
     var handler = function(message) {
       console.log(message.toObject());
     }
-    var spy = new Audience.Spy({handler: handler, domMappings: TrackerDOMMappings});
-    spy.listen();
+    //var spy = new Audience.Spy({handler: handler, domMappings: TrackerDOMMappings});
+    //spy.listen();
 
   script(src='/javascripts/tracker-application.js')
 

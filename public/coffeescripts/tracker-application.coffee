@@ -15,7 +15,7 @@ class ProjectsCollection extends Backbone.Collection
 
 
 class Iteration extends Backbone.Model
-  currentStories: () ->
+  availableStories: () ->
     _.map get('stories'), (story) ->
       new Story(story.toJSON())
 
@@ -39,10 +39,16 @@ class Story extends Backbone.Model
   STARTED = "started"
   FINISHED = "finished"
   DELIVERED = "delivered"
+  REJECTED = "rejected"
   ACCEPTED = "accepted"
 
   BLOCKED = "blocked"
   ONCALL = "old-on-call"
+
+  url: "https://www.pivotaltracker.com/services/v5/projects/:project_id/stories"
+
+  initialize: (json) ->
+    @url = "#{@url.replace(":project_id", json.project_id)}/#{json.id}"
 
   feature: () ->
     @get('story_type') is FEATURE
@@ -58,11 +64,11 @@ class Story extends Backbone.Model
     !!labels
 
   status: () ->
-    state = @get('current_state')
+    state = @get 'current_state'
 
     if state is UNSTARTED
-      'current'
-    else if state is STARTED || state is FINISHED
+      'available'
+    else if state is STARTED || state is FINISHED || state is REJECTED
       'development'
     else if state is DELIVERED
       'test'
@@ -128,9 +134,18 @@ class StoryView extends Backbone.View
 
   render: () ->
     template = _.template "<h5 class='complexity <%= story_type %>'><%= mark %></h5><p class='description'><%= name %></p><p class='user legend'></p><p class='user'>#{}</p>"
-    @$el.addClass @story.type
+    @$el.addClass @story.current_state
+    @$el.addClass @story.type()
     @$el.attr('cid', @story.cid)
-    @$el.html template @story
+    @$el.html template
+      id: "@story-#{@story.get('id')}"
+      cid: @story.cid
+      current_state: @story.get('current_state')
+      name: @story.get('name')
+      mark: @story.mark()
+      story_type: @story.get('@story_type')
+      type: @story.type()
+
 #    @$el.click (event) =>
 #      event.stopPropagation()
 #      @$el.zoomTo {
@@ -142,7 +157,23 @@ class StoryView extends Backbone.View
     @
 
 class KanbanView extends Backbone.View
-  COLUMNS = ['Current', 'Development', 'Test', 'Complete']
+  COLUMNS =
+    available:
+      title: 'Available'
+      action: (event, ui) =>
+        console.log ui.draggable
+    development:
+      title: 'Development'
+      action: (event, ui) =>
+        console.log event.target
+    test:
+      title: 'Title'
+      action: (event, ui) =>
+        console.log event.target
+    complete:
+      title: 'Complete'
+      action: (event, ui) =>
+        console.log event.target
 
   el: '#stories'
   tagName: 'section'
@@ -150,7 +181,7 @@ class KanbanView extends Backbone.View
   initialize: (project) ->
     @project = project
     @totals =
-      current: 0
+      available: 0
       development: 0
       test: 0
       complete: 0
@@ -160,16 +191,16 @@ class KanbanView extends Backbone.View
       @totals[story.status()] += +story.get('estimate')
 
     if @$el.find("#story-#{story.get('id')}").length is 0
-      storyView = new StoryView({
-        id: "story-#{story.get('id')}", cid: story.cid,
-        story_type: story.get('story_type'), name: story.get('name'),
-        mark: story.mark(), type: story.type()
-      }).render()
-      #$(storyView.el).draggable({revert: 'invalid', stack: '.stickies div', snap: true, snapMode: 'inner'})
-      $(storyView.el).draggable({
-        connectToSortable: '.stickies',
-        stack: '.stickies div'
-      })
+      storyView = new StoryView story
+      storyView.render()
+      $(storyView.el).draggable({revert: "invalid"})
+      #      storyView.$el.click (event) ->
+        #        story.save 'current_state', 'delivered'
+#        project = new Project {id: TrackerApplication.projectId()}
+#        project.on 'change', (model) =>
+#          @updateSelectedProject model
+#        project.fetch {data: {token: TrackerApplication.token()}}
+
       @$el.find(".#{story.status()} .stickies").append storyView.el
 
   handleDroppedStory: (event, ui) ->
@@ -186,14 +217,16 @@ class KanbanView extends Backbone.View
     @project.iterationsCollection.on "add", @addIterationToWall
     @project.fetchIterations({scope: 'current_backlog'})
 
-    @$el.find('.stickies').sortable({
-      connectWith: '.stickies'
-    })
-#    @$el.find(".stickies").droppable({
-#      accept: '.stickies div',
-#      drop: @handleDroppedStory,
-#      tolerence: 'fit'
+#    @$el.find('.stickies').sortable({
+#      connectWith: '.stickies'
 #    })
+
+    _.each COLUMNS, (column, key) =>
+      @$el.find(".#{key}.wall").droppable
+        accept: ".chore, .feature, .bug"
+        drop: (event, ui) =>
+          column.action(event, ui)
+
     @
 
   renderBase: () ->
@@ -202,18 +235,18 @@ class KanbanView extends Backbone.View
     @
 
   renderHeaders: () ->
-    template = _.template "<tr>#{_.map COLUMNS, (column) -> "<td class='#{column.toLowerCase()} label'>#{column}</td>"}</tr>"
+    template = _.template "<tr>#{_.map COLUMNS, (column, key) -> "<td class='#{key} label'>#{column.title}</td>"}</tr>"
     @$el.find('table tbody').append template()
     @
 
   renderStoryArea: () ->
-    template = _.template "<tr>#{_.map COLUMNS, (column) -> "<td class='#{column.toLowerCase()} wall'><div class='stickies'></div></td>"}</tr>"
+    template = _.template "<tr>#{_.map COLUMNS, (column, key) -> "<td class='#{key} wall'><div class='stickies'></div></td>"}</tr>"
     @$el.find('table tbody').append template()
     @
 
   renderTotals: () =>
-    _.each COLUMNS, (column) =>
-      @$el.find(".label.#{column.toLowerCase()}").text "#{column} (#{@totals[column.toLowerCase()]})"
+    _.each COLUMNS, (column, key) =>
+      @$el.find(".label.#{key}").text "#{column.title} (#{@totals[key]})"
     @
 
 
@@ -263,6 +296,15 @@ class TrackerApplication extends Backbone.View
 
   @token: () =>
     @getCookie 'pivotal-api-token'
+
+
+Backbone.ajax = () ->
+  args = Array.prototype.slice.call arguments, 0
+  if args.length > 0
+    args[0].beforeSend = (request) ->
+      request.setRequestHeader "X-TrackerToken", TrackerApplication.token()
+
+  Backbone.$.ajax.apply Backbone.$, args
 
 
 new TrackerApplication().render()

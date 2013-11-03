@@ -57,7 +57,7 @@
       return _ref2;
     }
 
-    Iteration.prototype.currentStories = function() {
+    Iteration.prototype.availableStories = function() {
       return _.map(get('stories'), function(story) {
         return new Story(story.toJSON());
       });
@@ -89,7 +89,7 @@
   })(Backbone.Collection);
 
   Story = (function(_super) {
-    var ACCEPTED, BLOCKED, BUG, CHORE, DELIVERED, FEATURE, FINISHED, ONCALL, RELEASE, STARTED, UNSTARTED;
+    var ACCEPTED, BLOCKED, BUG, CHORE, DELIVERED, FEATURE, FINISHED, ONCALL, REJECTED, RELEASE, STARTED, UNSTARTED;
 
     __extends(Story, _super);
 
@@ -114,11 +114,19 @@
 
     DELIVERED = "delivered";
 
+    REJECTED = "rejected";
+
     ACCEPTED = "accepted";
 
     BLOCKED = "blocked";
 
     ONCALL = "old-on-call";
+
+    Story.prototype.url = "https://www.pivotaltracker.com/services/v5/projects/:project_id/stories";
+
+    Story.prototype.initialize = function(json) {
+      return this.url = "" + (this.url.replace(":project_id", json.project_id)) + "/" + json.id;
+    };
 
     Story.prototype.feature = function() {
       return this.get('story_type') === FEATURE;
@@ -148,8 +156,8 @@
       var state;
       state = this.get('current_state');
       if (state === UNSTARTED) {
-        return 'current';
-      } else if (state === STARTED || state === FINISHED) {
+        return 'available';
+      } else if (state === STARTED || state === FINISHED || state === REJECTED) {
         return 'development';
       } else if (state === DELIVERED) {
         return 'test';
@@ -282,9 +290,18 @@
     StoryView.prototype.render = function() {
       var template;
       template = _.template("<h5 class='complexity <%= story_type %>'><%= mark %></h5><p class='description'><%= name %></p><p class='user legend'></p><p class='user'>" + "</p>");
-      this.$el.addClass(this.story.type);
+      this.$el.addClass(this.story.current_state);
+      this.$el.addClass(this.story.type());
       this.$el.attr('cid', this.story.cid);
-      this.$el.html(template(this.story));
+      this.$el.html(template({
+        id: "@story-" + (this.story.get('id')),
+        cid: this.story.cid,
+        current_state: this.story.get('current_state'),
+        name: this.story.get('name'),
+        mark: this.story.mark(),
+        story_type: this.story.get('@story_type'),
+        type: this.story.type()
+      }));
       return this;
     };
 
@@ -293,7 +310,8 @@
   })(Backbone.View);
 
   KanbanView = (function(_super) {
-    var COLUMNS;
+    var COLUMNS,
+      _this = this;
 
     __extends(KanbanView, _super);
 
@@ -304,7 +322,32 @@
       return _ref9;
     }
 
-    COLUMNS = ['Current', 'Development', 'Test', 'Complete'];
+    COLUMNS = {
+      available: {
+        title: 'Available',
+        action: function(event, ui) {
+          return console.log(ui.draggable);
+        }
+      },
+      development: {
+        title: 'Development',
+        action: function(event, ui) {
+          return console.log(event.target);
+        }
+      },
+      test: {
+        title: 'Title',
+        action: function(event, ui) {
+          return console.log(event.target);
+        }
+      },
+      complete: {
+        title: 'Complete',
+        action: function(event, ui) {
+          return console.log(event.target);
+        }
+      }
+    };
 
     KanbanView.prototype.el = '#stories';
 
@@ -313,7 +356,7 @@
     KanbanView.prototype.initialize = function(project) {
       this.project = project;
       return this.totals = {
-        current: 0,
+        available: 0,
         development: 0,
         test: 0,
         complete: 0
@@ -326,17 +369,10 @@
         this.totals[story.status()] += +story.get('estimate');
       }
       if (this.$el.find("#story-" + (story.get('id'))).length === 0) {
-        storyView = new StoryView({
-          id: "story-" + (story.get('id')),
-          cid: story.cid,
-          story_type: story.get('story_type'),
-          name: story.get('name'),
-          mark: story.mark(),
-          type: story.type()
-        }).render();
+        storyView = new StoryView(story);
+        storyView.render();
         $(storyView.el).draggable({
-          connectToSortable: '.stickies',
-          stack: '.stickies div'
+          revert: "invalid"
         });
         return this.$el.find("." + (story.status()) + " .stickies").append(storyView.el);
       }
@@ -355,13 +391,19 @@
     };
 
     KanbanView.prototype.render = function() {
+      var _this = this;
       this.renderBase().renderHeaders().renderStoryArea();
       this.project.iterationsCollection.on("add", this.addIterationToWall);
       this.project.fetchIterations({
         scope: 'current_backlog'
       });
-      this.$el.find('.stickies').sortable({
-        connectWith: '.stickies'
+      _.each(COLUMNS, function(column, key) {
+        return _this.$el.find("." + key + ".wall").droppable({
+          accept: ".chore, .feature, .bug",
+          drop: function(event, ui) {
+            return column.action(event, ui);
+          }
+        });
       });
       return this;
     };
@@ -375,8 +417,8 @@
 
     KanbanView.prototype.renderHeaders = function() {
       var template;
-      template = _.template("<tr>" + (_.map(COLUMNS, function(column) {
-        return "<td class='" + (column.toLowerCase()) + " label'>" + column + "</td>";
+      template = _.template("<tr>" + (_.map(COLUMNS, function(column, key) {
+        return "<td class='" + key + " label'>" + column.title + "</td>";
       })) + "</tr>");
       this.$el.find('table tbody').append(template());
       return this;
@@ -384,8 +426,8 @@
 
     KanbanView.prototype.renderStoryArea = function() {
       var template;
-      template = _.template("<tr>" + (_.map(COLUMNS, function(column) {
-        return "<td class='" + (column.toLowerCase()) + " wall'><div class='stickies'></div></td>";
+      template = _.template("<tr>" + (_.map(COLUMNS, function(column, key) {
+        return "<td class='" + key + " wall'><div class='stickies'></div></td>";
       })) + "</tr>");
       this.$el.find('table tbody').append(template());
       return this;
@@ -393,15 +435,15 @@
 
     KanbanView.prototype.renderTotals = function() {
       var _this = this;
-      _.each(COLUMNS, function(column) {
-        return _this.$el.find(".label." + (column.toLowerCase())).text("" + column + " (" + _this.totals[column.toLowerCase()] + ")");
+      _.each(COLUMNS, function(column, key) {
+        return _this.$el.find(".label." + key).text("" + column.title + " (" + _this.totals[key] + ")");
       });
       return this;
     };
 
     return KanbanView;
 
-  })(Backbone.View);
+  }).call(this, Backbone.View);
 
   TrackerApplication = (function(_super) {
     __extends(TrackerApplication, _super);
@@ -487,6 +529,17 @@
     return TrackerApplication;
 
   }).call(this, Backbone.View);
+
+  Backbone.ajax = function() {
+    var args;
+    args = Array.prototype.slice.call(arguments, 0);
+    if (args.length > 0) {
+      args[0].beforeSend = function(request) {
+        return request.setRequestHeader("X-TrackerToken", TrackerApplication.token());
+      };
+    }
+    return Backbone.$.ajax.apply(Backbone.$, args);
+  };
 
   new TrackerApplication().render();
 
