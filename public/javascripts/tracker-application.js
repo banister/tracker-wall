@@ -120,7 +120,7 @@
 
     BLOCKED = "blocked";
 
-    ONCALL = "old-on-call";
+    ONCALL = "on-call";
 
     Story.prototype.url = "https://www.pivotaltracker.com/services/v5/projects/:project_id/stories";
 
@@ -145,7 +145,7 @@
       _ref5 = this.get('labels');
       for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
         label = _ref5[_i];
-        if (label.name === ONCALL) {
+        if (/#{ONCALL}/i.test(label.name)) {
           labels = label;
         }
       }
@@ -168,7 +168,7 @@
 
     Story.prototype.type = function() {
       if (this.onCall()) {
-        return 'on-call';
+        return ONCALL;
       } else {
         return this.get('story_type');
       }
@@ -290,9 +290,8 @@
     StoryView.prototype.render = function() {
       var template;
       template = _.template("<h5 class='complexity <%= story_type %>'><%= mark %></h5><p class='description'><%= name %></p><p class='user legend'></p><p class='user'>" + "</p>");
-      this.$el.addClass(this.story.current_state);
+      this.$el.addClass(this.story.get('current_state'));
       this.$el.addClass(this.story.type());
-      this.$el.attr('cid', this.story.cid);
       this.$el.html(template({
         id: "@story-" + (this.story.get('id')),
         cid: this.story.cid,
@@ -310,8 +309,7 @@
   })(Backbone.View);
 
   KanbanView = (function(_super) {
-    var COLUMNS,
-      _this = this;
+    var COLUMNS;
 
     __extends(KanbanView, _super);
 
@@ -322,30 +320,30 @@
       return _ref9;
     }
 
+    KanbanView.prototype.handleDroppedStory = function(event, ui) {
+      return console.log(event);
+    };
+
     COLUMNS = {
       available: {
-        title: 'Available',
-        action: function(event, ui) {
-          return console.log(ui.draggable);
-        }
+        accepts: '.started',
+        action: KanbanView.prototype.handleDroppedStory,
+        title: 'Available'
       },
       development: {
-        title: 'Development',
-        action: function(event, ui) {
-          return console.log(event.target);
-        }
+        accepts: '.unstarted, .delivered',
+        action: KanbanView.prototype.handleDroppedStory,
+        title: 'Development'
       },
       test: {
-        title: 'Title',
-        action: function(event, ui) {
-          return console.log(event.target);
-        }
+        accepts: '.finished, .started, .rejected, .accepted',
+        action: KanbanView.prototype.handleDroppedStory,
+        title: 'Title'
       },
       complete: {
-        title: 'Complete',
-        action: function(event, ui) {
-          return console.log(event.target);
-        }
+        accepts: '.delivered',
+        action: KanbanView.prototype.handleDroppedStory,
+        title: 'Complete'
       }
     };
 
@@ -369,17 +367,14 @@
         this.totals[story.status()] += +story.get('estimate');
       }
       if (this.$el.find("#story-" + (story.get('id'))).length === 0) {
-        storyView = new StoryView(story);
-        storyView.render();
+        storyView = new StoryView(story).render();
         $(storyView.el).draggable({
-          revert: "invalid"
+          opacity: 0.85,
+          revert: "invalid",
+          stack: "div"
         });
         return this.$el.find("." + (story.status()) + " .stickies").append(storyView.el);
       }
-    };
-
-    KanbanView.prototype.handleDroppedStory = function(event, ui) {
-      return console.log(event);
     };
 
     KanbanView.prototype.addIterationToWall = function(iteration) {
@@ -399,10 +394,8 @@
       });
       _.each(COLUMNS, function(column, key) {
         return _this.$el.find("." + key + ".wall").droppable({
-          accept: ".chore, .feature, .bug",
-          drop: function(event, ui) {
-            return column.action(event, ui);
-          }
+          accept: column.accepts,
+          drop: column.action
         });
       });
       return this;
@@ -443,7 +436,7 @@
 
     return KanbanView;
 
-  }).call(this, Backbone.View);
+  })(Backbone.View);
 
   TrackerApplication = (function(_super) {
     __extends(TrackerApplication, _super);

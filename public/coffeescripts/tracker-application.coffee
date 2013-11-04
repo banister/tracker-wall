@@ -43,7 +43,7 @@ class Story extends Backbone.Model
   ACCEPTED = "accepted"
 
   BLOCKED = "blocked"
-  ONCALL = "old-on-call"
+  ONCALL = "on-call"
 
   url: "https://www.pivotaltracker.com/services/v5/projects/:project_id/stories"
 
@@ -60,7 +60,7 @@ class Story extends Backbone.Model
       @get('story_type').charAt(0).toUpperCase()
 
   onCall: () ->
-    labels = label for label in @get('labels') when label.name is ONCALL
+    labels = label for label in @get('labels') when /#{ONCALL}/i.test label.name
     !!labels
 
   status: () ->
@@ -77,7 +77,7 @@ class Story extends Backbone.Model
 
   type: () ->
     if @onCall()
-      'on-call'
+      ONCALL
     else
       @get('story_type')
 
@@ -134,9 +134,8 @@ class StoryView extends Backbone.View
 
   render: () ->
     template = _.template "<h5 class='complexity <%= story_type %>'><%= mark %></h5><p class='description'><%= name %></p><p class='user legend'></p><p class='user'>#{}</p>"
-    @$el.addClass @story.current_state
+    @$el.addClass @story.get 'current_state'
     @$el.addClass @story.type()
-    @$el.attr('cid', @story.cid)
     @$el.html template
       id: "@story-#{@story.get('id')}"
       cid: @story.cid
@@ -146,34 +145,29 @@ class StoryView extends Backbone.View
       story_type: @story.get('@story_type')
       type: @story.type()
 
-#    @$el.click (event) =>
-#      event.stopPropagation()
-#      @$el.zoomTo {
-#        closeclick: true,
-#        debug: true,
-#        root: $(document.body),
-#        targetsize: 0.6
-#      }
     @
 
 class KanbanView extends Backbone.View
+  handleDroppedStory: (event, ui) ->
+    console.log event
+
   COLUMNS =
     available:
+      accepts: '.started'
+      action: @prototype.handleDroppedStory
       title: 'Available'
-      action: (event, ui) =>
-        console.log ui.draggable
     development:
+      accepts: '.unstarted, .delivered'
+      action: @prototype.handleDroppedStory
       title: 'Development'
-      action: (event, ui) =>
-        console.log event.target
     test:
+      accepts: '.finished, .started, .rejected, .accepted'
+      action: @prototype.handleDroppedStory
       title: 'Title'
-      action: (event, ui) =>
-        console.log event.target
     complete:
+      accepts: '.delivered'
+      action: @prototype.handleDroppedStory
       title: 'Complete'
-      action: (event, ui) =>
-        console.log event.target
 
   el: '#stories'
   tagName: 'section'
@@ -191,20 +185,12 @@ class KanbanView extends Backbone.View
       @totals[story.status()] += +story.get('estimate')
 
     if @$el.find("#story-#{story.get('id')}").length is 0
-      storyView = new StoryView story
-      storyView.render()
-      $(storyView.el).draggable({revert: "invalid"})
-      #      storyView.$el.click (event) ->
-        #        story.save 'current_state', 'delivered'
-#        project = new Project {id: TrackerApplication.projectId()}
-#        project.on 'change', (model) =>
-#          @updateSelectedProject model
-#        project.fetch {data: {token: TrackerApplication.token()}}
-
+      storyView = new StoryView(story).render()
+      $(storyView.el).draggable
+        opacity: 0.85
+        revert: "invalid"
+        stack: "div"
       @$el.find(".#{story.status()} .stickies").append storyView.el
-
-  handleDroppedStory: (event, ui) ->
-    console.log event
 
   addIterationToWall: (iteration) =>
     _.each iteration.get('stories'), (json) =>
@@ -217,15 +203,10 @@ class KanbanView extends Backbone.View
     @project.iterationsCollection.on "add", @addIterationToWall
     @project.fetchIterations({scope: 'current_backlog'})
 
-#    @$el.find('.stickies').sortable({
-#      connectWith: '.stickies'
-#    })
-
     _.each COLUMNS, (column, key) =>
       @$el.find(".#{key}.wall").droppable
-        accept: ".chore, .feature, .bug"
-        drop: (event, ui) =>
-          column.action(event, ui)
+        accept: column.accepts
+        drop: column.action
 
     @
 
