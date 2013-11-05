@@ -163,7 +163,7 @@ class KanbanView extends Backbone.View
     test:
       accepts: '.finished, .started, .rejected, .accepted'
       action: @prototype.handleDroppedStory
-      title: 'Title'
+      title: 'Test'
     complete:
       accepts: '.delivered'
       action: @prototype.handleDroppedStory
